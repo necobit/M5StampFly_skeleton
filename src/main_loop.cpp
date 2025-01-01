@@ -44,6 +44,10 @@
 #include "freertos/task.h"
 
 
+volatile uint8_t armButtonState = 0;
+volatile uint8_t armButtonPressedAndRerleased = 0;
+volatile uint8_t previousArmButtonState = 0; 
+
 void IRAM_ATTR onTimer(void);
 void init_copter(void);
 void update_loop400Hz(void);
@@ -141,6 +145,15 @@ void update_loop400Hz(void) {
     
     // LED Drive
     led_drive();
+
+    // Read Button Value
+    armButtonState = Stick[BUTTON_ARM];
+    if (armButtonState != previousArmButtonState) {
+        if (armButtonState == 0) {
+            armButtonPressedAndRerleased = 1;
+        }
+        previousArmButtonState = armButtonState;
+    }
 }
 
 void init_mode(void) {
@@ -181,7 +194,8 @@ void flight_mode(void) {
     motor_set_duty_fr(throttle_delta);
     motor_set_duty_rl(throttle_delta);
     motor_set_duty_rr(throttle_delta);
-    if (StampFly.times.elapsed_time > 12.0)StampFly.flag.mode = PARKING_MODE;
+    if (armButtonPressedAndRerleased)StampFly.flag.mode = PARKING_MODE;
+    armButtonPressedAndRerleased = 0;
 }
 
 void parking_mode(void) {
@@ -191,7 +205,8 @@ void parking_mode(void) {
     onboard_led2(GREEN, 1);
     
     motor_stop();
-    if (StampFly.times.elapsed_time > 2.0 && StampFly.times.elapsed_time < 12.0)StampFly.flag.mode = FLIGHT_MODE;
+    if (armButtonPressedAndRerleased)StampFly.flag.mode = FLIGHT_MODE;
+    armButtonPressedAndRerleased = 0;
 }
 
 float limit(float value, float min, float max) {
