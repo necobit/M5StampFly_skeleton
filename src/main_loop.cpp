@@ -57,6 +57,7 @@ void flight_mode(void);
 void parking_mode(void);
 void loop_400Hz(void);
 float limit(float value, float min, float max);
+float deadband(float value, float deadband);
 
 // Main loop
 void loop_400Hz(void) {
@@ -154,11 +155,22 @@ void update_loop400Hz(void) {
         }
         previousArmButtonState = armButtonState;
     }
+
+    // Send Angle Rate
+    //USBSerial.printf(">RollRate:%f\n", StampFly.sensor.roll_rate);
+    //USBSerial.printf(">PitchRate:%f\n", StampFly.sensor.pitch_rate);
+    //USBSerial.printf(">YawRate:%f\n", StampFly.sensor.yaw_rate);
 }
 
 void init_mode(void) {
     motor_stop();
     StampFly.counter.offset = 0;
+    
+    //Set PID Gain
+    StampFly.pid.roll.set_parameter(0.08, 1.0e1, 0.01, 0.125, 0.0025);
+    StampFly.pid.pitch.set_parameter(0.08, 1.0e1, 0.01, 0.125, 0.0025);
+    StampFly.pid.yaw.set_parameter(0.08, 1.0e2, 0.0, 0.125, 0.0025);
+
     //Mode change
     StampFly.flag.mode = AVERAGE_MODE;
     return;
@@ -188,12 +200,36 @@ void flight_mode(void) {
     // Set LED Color
     onboard_led1(YELLOW, 1);
     onboard_led2(YELLOW, 1);
-    float throttle_delta = limit(Stick[THROTTLE], 0.0, 0.9);
 
-    motor_set_duty_fl(throttle_delta);
-    motor_set_duty_fr(throttle_delta);
-    motor_set_duty_rl(throttle_delta);
-    motor_set_duty_rr(throttle_delta);
+    float throttle_delta = limit(deadband(Stick[THROTTLE], 0.065), 0.0, 0.9);
+
+    //Command
+    float roll_com = 40.0*PI/180*limit(deadband(Stick[AILERON], 0.05), -1.0, 1.0);
+    float pitch_com = 40.0*PI/180*limit(deadband(Stick[ELEVATOR], 0.05), -1.0, 1.0);
+    float yaw_com = 180.0*PI/180*limit(deadband(Stick[RUDDER], 0.05), -1.0, 1.0);
+
+    //Error
+    float roll_err = roll_com - StampFly.sensor.roll_rate;
+    float pitch_err = pitch_com - StampFly.sensor.pitch_rate;
+    float yaw_err = yaw_com - StampFly.sensor.yaw_rate;
+
+    //PID
+    float roll_delta = StampFly.pid.roll.update(roll_err, StampFly.times.interval_time);
+    float pitch_delta = StampFly.pid.pitch.update(pitch_err, StampFly.times.interval_time);
+    float yaw_delta = StampFly.pid.yaw.update(yaw_err, StampFly.times.interval_time);
+
+    //Set Duty
+    float fr_duty = limit(throttle_delta - roll_delta + pitch_delta + yaw_delta, 0.0, 0.9);
+    float fl_duty = limit(throttle_delta + roll_delta + pitch_delta - yaw_delta, 0.0, 0.9); 
+    float rr_duty = limit(throttle_delta - roll_delta - pitch_delta - yaw_delta, 0.0, 0.9);
+    float rl_duty = limit(throttle_delta + roll_delta - pitch_delta + yaw_delta, 0.0, 0.9);
+
+    motor_set_duty_fr(fr_duty);
+    motor_set_duty_fl(fl_duty);
+    motor_set_duty_rr(rr_duty);
+    motor_set_duty_rl(rl_duty);
+
+    //Mode change
     if (armButtonPressedAndRerleased)StampFly.flag.mode = PARKING_MODE;
     armButtonPressedAndRerleased = 0;
 }
@@ -204,13 +240,28 @@ void parking_mode(void) {
     onboard_led1(GREEN, 1);
     onboard_led2(GREEN, 1);
     
+    //Motor Stop
     motor_stop();
+
+    //Reset PID
+    StampFly.pid.roll.reset();
+    StampFly.pid.pitch.reset();
+    StampFly.pid.yaw.reset();
+
+    //Mode change
     if (armButtonPressedAndRerleased)StampFly.flag.mode = FLIGHT_MODE;
     armButtonPressedAndRerleased = 0;
 }
 
+//Limit function
 float limit(float value, float min, float max) {
     if (value < min) return min;
     if (value > max) return max;
+    return value;
+}
+
+//Dead band function
+float deadband(float value, float deadband) {
+    if (value < deadband && value > -deadband) return 0.0;
     return value;
 }
