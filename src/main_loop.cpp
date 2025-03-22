@@ -185,28 +185,14 @@ void average_mode(void) {
 
 void flight_mode(void) {
     //飛行するためのコードを以下に記述する
-    // Set LED Color
-    onboard_led1(YELLOW, 1);
-    onboard_led2(YELLOW, 1);
-    float throttle_delta = limit(Stick[THROTTLE], 0.0, 0.9);
-
-    motor_set_duty_fl(throttle_delta);
-    motor_set_duty_fr(throttle_delta);
-    motor_set_duty_rl(throttle_delta);
-    motor_set_duty_rr(throttle_delta);
-    if (armButtonPressedAndRerleased)StampFly.flag.mode = PARKING_MODE;
-    armButtonPressedAndRerleased = 0;
 }
 
 void parking_mode(void) {
     //着陸している時に行う処理を記述する
     // Set LED Color
     onboard_led1(GREEN, 1);
-    onboard_led2(GREEN, 1);
-    
+    onboard_led2(GREEN, 1);    
     motor_stop();
-    if (armButtonPressedAndRerleased)StampFly.flag.mode = FLIGHT_MODE;
-    armButtonPressedAndRerleased = 0;
 }
 
 float limit(float value, float min, float max) {
