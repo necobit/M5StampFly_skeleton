@@ -67,10 +67,10 @@ graph TD
 
 ```mermaid
 graph TD
-    A[sensor_read()] --> B[IMUデータ読み取り\n加速度、角速度]
-    B --> C[姿勢計算\nMadgwickフィルタ]
-    C --> D[ToFセンサー読み取り\n高度情報]
-    D --> E[バッテリー電圧\n読み取り]
+    A[sensor_read()] --> B[IMUデータ読み取り<br>加速度、角速度]
+    B --> C[姿勢計算<br>Madgwickフィルタ]
+    C --> D[ToFセンサー読み取り<br>高度情報]
+    D --> E[バッテリー電圧<br>読み取り]
 ```
 
 ## モード遷移図
