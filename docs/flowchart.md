@@ -28,10 +28,10 @@ M5StampFly は以下の 4 つの動作モードを持っています：
 
 ```mermaid
 graph TD
-    A[電源投入] --> B[setup()実行<br>init_copter()]
+    A[電源投入] --> B[setup（）実行<br>init_copter（）]
     B --> C[タイマー割込設定<br>400Hz]
-    C --> D[loop()関数実行<br>loop_400Hz()]
-    D --> E[update_loop400Hz()<br>センサー値読み取り]
+    C --> D[loop（）関数実行<br>loop_400Hz（）]
+    D --> E[update_loop400Hz（）<br>センサー値読み取り]
     E --> F[モード判定]
     F --> G[初期化モード]
     F --> H[平均化モード]
@@ -52,7 +52,7 @@ graph TD
 
 ```mermaid
 graph TD
-    A[init_copter()] --> B[モード初期化\nINIT_MODE]
+    A[init_copter（）] --> B[モード初期化\nINIT_MODE]
     B --> C[LED初期化]
     C --> D[シリアル通信初期化]
     D --> E[モーター初期化]
@@ -67,7 +67,7 @@ graph TD
 
 ```mermaid
 graph TD
-    A[sensor_read()] --> B[IMUデータ読み取り<br>加速度、角速度]
+    A[sensor_read（）] --> B[IMUデータ読み取り<br>加速度、角速度]
     B --> C[姿勢計算<br>Madgwickフィルタ]
     C --> D[ToFセンサー読み取り<br>高度情報]
     D --> E[バッテリー電圧<br>読み取り]
