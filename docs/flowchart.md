@@ -27,7 +27,7 @@ M5StampFlyは以下の4つの動作モードを持っています：
 ## メインフローチャート
 
 ```mermaid
-flowchart TD
+graph TD
     A[電源投入] --> B[setup()実行\ninit_copter()]
     B --> C[タイマー割込設定\n400Hz]
     C --> D[loop()関数実行\nloop_400Hz()]
@@ -51,7 +51,7 @@ flowchart TD
 ## 初期化フロー (init_copter)
 
 ```mermaid
-flowchart TD
+graph TD
     A[init_copter()] --> B[モード初期化\nINIT_MODE]
     B --> C[LED初期化]
     C --> D[シリアル通信初期化]
@@ -66,7 +66,7 @@ flowchart TD
 ## センサー読み取りフロー (sensor_read)
 
 ```mermaid
-flowchart TD
+graph TD
     A[sensor_read()] --> B[IMUデータ読み取り\n加速度、角速度]
     B --> C[姿勢計算\nMadgwickフィルタ]
     C --> D[ToFセンサー読み取り\n高度情報]
